@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mental Wellness Check-In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- App-like behavior -->
+  <meta name="theme-color" content="#6c63ff">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f4f8;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 6px 0;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background: #6c63ff;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #eef0ff;
+      margin: 6px 0;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>🧠 Mental Wellness Check-In</h2>
+
+  <!-- Mood Input -->
+  <div class="card">
+    <p><strong>How do you feel today?</strong></p>
+    <button onclick="saveMood(1)">😞 Very Bad</button>
+    <button onclick="saveMood(2)">🙁 Bad</button>
+    <button onclick="saveMood(3)">😐 Okay</button>
+    <button onclick="saveMood(4)">🙂 Good</button>
+    <button onclick="saveMood(5)">😁 Very Good</button>
+  </div>
+
+  <!-- History -->
+  <div class="card">
+    <h3>📊 Mood History (Last 7 Days)</h3>
+    <ul id="history"></ul>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // 🔴 PASTE YOUR FIREBASE CONFIG HERE
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "XXXX",
+      appId: "XXXX"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Save mood
+    function saveMood(value) {
+      db.collection("moods").add({
+        mood: value,
+        date: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        alert("Mood saved 🌟");
+      });
+    }
+
+    // Load history
+    function loadHistory() {
+      const list = document.getElementById("history");
+
+      db.collection("moods")
+        .orderBy("date", "desc")
+        .limit(7)
+        .onSnapshot(snapshot => {
+          list.innerHTML = "";
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            if (!data.date) return;
+
+            const d = data.date.toDate();
+            const day = d.toLocaleDateString("en-IN", { weekday: "short" });
+            const date = d.toLocaleDateString("en-IN");
+
+            list.innerHTML += `
+              <li>
+                <strong>${day}</strong> (${date}) – Mood: ${data.mood}
+              </li>`;
+          });
+        });
+    }
+
+    loadHistory();
+  </script>
+
+</body>
+</html>
